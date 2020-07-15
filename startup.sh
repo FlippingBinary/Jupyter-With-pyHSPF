@@ -3,7 +3,6 @@
 set -e
 
 JUPYTER_PASSWORD=${JUPYTER_PASSWORD:-jupyter}
-PORT=${PORT:-8888}
 
 mkdir -p ~/.jupyter
 
@@ -25,4 +24,4 @@ EOF
 chmod 0600 ~/.jupyter/jupyter_notebook_config.json
 
 
-exec /opt/conda/bin/jupyter lab --notebook-dir=/opt/notebooks --ip='*' --port=$PORT --no-browser
+exec /opt/conda/bin/jupyter lab --notebook-dir=/opt/notebooks --ip='*' --port=8888 --no-browser

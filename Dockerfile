@@ -56,4 +56,6 @@ WORKDIR /home/jupyter
 
 COPY startup.sh /home/jupyter/startup.sh
 
+EXPOSE 8888
+
 CMD /bin/bash /home/jupyter/startup.sh
