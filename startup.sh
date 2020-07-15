@@ -16,11 +16,6 @@ cat > ~/.jupyter/jupyter_notebook_config.json <<EOF
 }
 EOF
 
-cat <<EOF
-  Created hash: $PASSWORD_HASH
-  From password: $JUPYTER_PASSWORD
-EOF
-
 chmod 0600 ~/.jupyter/jupyter_notebook_config.json
 
 

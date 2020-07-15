@@ -28,27 +28,28 @@ RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificate
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
     && /bin/bash ~/miniconda.sh -b -p /opt/conda \
     && rm ~/miniconda.sh \
-    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh \
-    && echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc\
-    && echo "conda activate base" >> ~/.bashrc \
-    && conda init bash
+    && ln -s /opt/conda/etc/profile.d/conda.sh /etc/profile.d/conda.sh
 
 RUN conda update --all \
     && conda install -c conda-forge gdal jupyterlab lxml matplotlib numpy pillow pyshp scipy pyproj eccodes pygrib -y --quiet \
-    && mkdir /opt/notebooks
+    && mkdir /opt/notebooks \
+    && conda clean --all
 
 RUN /opt/conda/bin/python -m pip install python-cmr
 
 RUN wget --quiet https://github.com/djlampert/PyHSPF/archive/master.zip -O ~/pyhspf.zip \
     && unzip -d ~/ ~/pyhspf.zip \
-    && rm ~/pyhspf.zip
-
-RUN cd ~/PyHSPF-master/src \
+    && rm ~/pyhspf.zip \
+    && cd ~/PyHSPF-master/src \
     && rm setup.cfg \
     && /opt/conda/bin/python setup.py build \
-    && /opt/conda/bin/python setup.py install
+    && /opt/conda/bin/python setup.py install \
+    && rm -R ~/PyHSPF-master
 
-RUN useradd --create-home --home-dir /home/jupyter --shell /bin/bash jupyter
+RUN useradd --create-home --home-dir /home/jupyter --shell /bin/bash jupyter \
+    && echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc\
+    && echo "conda activate base" >> ~/.bashrc \
+    && su -c "conda init bash" - jupyter
 
 USER jupyter
 
