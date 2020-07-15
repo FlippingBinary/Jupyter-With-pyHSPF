@@ -2,19 +2,16 @@
 
 # If you want persistent storage, you'll need to mount a directory to /opt/notebooks
 # You can mount a folder named "notebooks" in the present directory with the Windows command below:
-#  docker run -dp 8888:8888 --mount src="$(pwd)/notebooks",target=/opt/notebooks,type=bind flippingbinary/jupyter-with-pyhspf
+#  docker run -dp 8888:8888 --rm --mount src="$(pwd)/notebooks",target=/opt/notebooks,type=bind flippingbinary/jupyter-with-pyhspf
 
-# If you want to change the default password, you'll need to rebuild it locally.
-# Copy this Dockerfile to a directory, cd into, change "JUPYTER_PASSWORD", then run:
-#  docker build -t local-jupyter .
-# After that, you will run "local-jupyter" (or whatever you named it) instead of flippingbinary/jupyter-with-pyhspf
+# If you want to use a better password, pass the JUPYTER_PASSWORD environment variable in your run command.
+#  docker run -e JUPYTER_PASSWORD="aW3s0mePa$$word" -dp 8888:8888 --rm --mount src="$(pwd)/notebooks",target=/opt/notebooks,type=bind flippingbinary/jupyter-with-pyhspf
+
+# If you want to keep the container around to run automatically or something, remove the "--rm" argument.
 
 FROM ubuntu:bionic
 
 LABEL author="Jon Musselwhite <jmusselwhite@wvstateu.edu>"
-
-# Change the password if you are exposing this server
-ARG JUPYTER_PASSWORD="jupyter"
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
@@ -24,7 +21,9 @@ ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update --fix-missing && apt-get install -y wget bzip2 ca-certificates \
     libglib2.0-0 libxext6 libsm6 libxrender1 \
     git mercurial subversion \
-    p7zip-full libgdal-dev libgdal20 libproj12 proj-bin libproj-dev proj-data build-essential gfortran unzip
+    p7zip-full libgdal-dev libgdal20 libproj12 proj-bin libproj-dev proj-data build-essential gfortran unzip \
+    && apt-get clean \
+    && apt-get autoclean
 
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh \
     && /bin/bash ~/miniconda.sh -b -p /opt/conda \
@@ -55,9 +54,6 @@ USER jupyter
 
 WORKDIR /home/jupyter
 
-RUN mkdir ~/.jupyter \
-    && echo "{\n  \"NotebookApp\": {\n    \"password\": \""`/opt/conda/bin/python -c "from notebook.auth import passwd;print(passwd('$JUPYTER_PASSWORD'))"`"\"\n  }\n}" \
-    > ~/.jupyter/jupyter_notebook_config.json \
-    && chmod 0600 ~/.jupyter/jupyter_notebook_config.json
+COPY startup.sh /home/jupyter/startup.sh
 
-CMD /opt/conda/bin/jupyter lab --notebook-dir=/opt/notebooks --ip='*' --port=8888 --no-browser
+CMD /bin/bash /home/jupyter/startup.sh
